@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "protogrid-response"
+version = "0.1.0"
+authors = [
+    { name = "Utsav", email = "your-email@example.com" },
+]
+description = "A lightweight, standardized API response tool for Python web frameworks."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.optional-dependencies]
+fastapi = ["fastapi"]
+flask = ["flask"]
+
+[project.urls]
+"Homepage" = "https://github.com/Matrixxboy/protogrid"
