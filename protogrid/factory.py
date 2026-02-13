@@ -1,34 +1,42 @@
 from typing import Any, Optional, Union
-from .models import APIResponse, ErrorDetail, MetaData
+from .models import APIResponse, ErrorDetail, MetaData, PaginationMeta
 from .status import APIStatus
 
 
 def create_response(
     status: Union[APIStatus, str, int] = APIStatus.OK,
     message: Optional[str] = None,
-    data: Optional[Any] = None,
+    payload: Optional[Any] = None,
     error_details: Optional[Any] = None,
     include_meta: bool = True,
-    request_id: Optional[str] = None
+    request_id: Optional[str] = None,
+    # Pagination args
+    page: Optional[int] = None,
+    limit: Optional[int] = None,
+    total_items: Optional[int] = None,
 ) -> APIResponse:
     """
     Creates a standardized API response.
-    
-    Args:
-        status: The APIStatus enum value, or a string ("ok", "200"), or int (200).
-        message: Optional custom message. Defaults to status code name.
-        data: The payload to return for success responses.
-        error_details: Additional error information for failure responses.
-        include_meta: Whether to include metadata (timestamp, request_id).
-        request_id: Optional custom request ID.
-        
-    Returns:
-        An APIResponse object.
     """
     # Resolve status
     api_status = APIStatus.from_value(status)
     
     is_success = api_status.http_status < 400
+    
+    # Handle Pagination
+    pagination = None
+    if page is not None and limit is not None:
+        total = total_items if total_items is not None else 0
+        total_pages = (total + limit - 1) // limit if limit > 0 else 0
+        
+        pagination = PaginationMeta(
+            page=page,
+            limit=limit,
+            total_items=total,
+            total_pages=total_pages,
+            has_next=page < total_pages,
+            has_prev=page > 1
+        )
     
     meta = None
     if include_meta:
@@ -51,7 +59,8 @@ def create_response(
         success=is_success,
         message=message,
         http_code=api_status.http_status,
-        data=data if is_success else None,
+        payload=payload if is_success else None,
+        pagination=pagination,
         error=error,
         meta=meta
     )

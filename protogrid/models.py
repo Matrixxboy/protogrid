@@ -16,11 +16,21 @@ class ErrorDetail:
     details: Optional[Any] = None
 
 @dataclass
+class PaginationMeta:
+    page: int
+    limit: int
+    total_items: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
+@dataclass
 class APIResponse(Generic[T]):
     success: bool
     message: str
     http_code: int
-    data: Optional[T] = None
+    payload: Optional[T] = None
+    pagination: Optional[PaginationMeta] = None
     error: Optional[ErrorDetail] = None
     meta: Optional[MetaData] = None
 

@@ -6,7 +6,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 import traceback
 
-from api_response.integrations.response import make_response
+from protogrid import make_response
 
 # ---------------- Logging ----------------
 logging.basicConfig(
@@ -25,39 +25,68 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/bhai")
+def root():
+    try:
+        response = make_response(
+        payload=data,
+        message="User retrieved successfully"
+        )
+        return response
+    except Exception as e:
+        return make_response(
+            status=500,
+            message="Internal Server Error",
+            payload=str(e),
+            error_details="API bhai is not working",
+            include_meta=True
+        )
+
 # ======================================================
-# ✅ HEALTH CHECK API (to check if server is running)
+#  HEALTH CHECK API (to check if server is running)
 # ======================================================
 @app.get("/health")
 def health_check():
     return make_response(
         status=200,
         message="Server is running",
-        data={"status": "OK"},
+        payload={"status": "OK"},
         include_meta=True
     )
 
 # ======================================================
-# ✅ TEST SUCCESS API
+#  TEST SUCCESS API
 # ======================================================
 @app.get("/success")
 def success_api():
     return make_response(
         status=200,
         message="Success API working",
-        data={"data": 123},
-        include_meta=False
+        page=1,
+        limit=10,
+        total_items=10,
+        include_meta=True,
+        error=""
     )
 
 # ======================================================
-# ✅ TEST ERROR API (manual error trigger)
+#  TEST ERROR API (manual error trigger)
 # ======================================================
 @app.get("/error")
 def error_api():
-    raise HTTPException(status_code=400, detail="Manual Bad Request")
+    return make_response(
+        status=400,
+        message="Manual Bad Request",
+        page=1,
+        limit=10,
+        total_items=10,
+        include_meta=True,
+        error_details="Manual Bad Request"
+    )
 
 # ======================================================
-# ✅ 404 NOT FOUND HANDLER
+#  404 NOT FOUND HANDLER
 # ======================================================
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
@@ -68,13 +97,13 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         content=make_response(
             status=exc.status_code,
             message="HTTP Error",
-            data=exc.detail,
+            payload=exc.detail,
             include_meta=False
         )
     )
 
 # ======================================================
-# ✅ VALIDATION ERROR HANDLER (422)
+#  VALIDATION ERROR HANDLER (422)
 # ======================================================
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -85,13 +114,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content=make_response(
             status=422,
             message="Validation Error",
-            data=exc.errors(),
+            payload=exc.errors(),
             include_meta=False
         )
     )
 
 # ======================================================
-# ✅ GLOBAL ERROR HANDLER (500)
+#  GLOBAL ERROR HANDLER (500)
 # ======================================================
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -103,7 +132,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         content=make_response(
             status=500,
             message="Internal Server Error",
-            data=str(exc),
+            payload=str(exc),
             include_meta=False
         )
     )
